@@ -1,8 +1,8 @@
 import dotenv from "dotenv";
 import { createServer } from "http";
-import connectToDB from "./config/db.js";
 import app from "./app.js";
 import config from "./config/config.js";
+import connectToDB from "./config/db.js";
 
 dotenv.config();
 

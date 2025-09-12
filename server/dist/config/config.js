@@ -1,6 +1,5 @@
 import dotenv from "dotenv";
 dotenv.config();
-
 export default {
     PORT: process.env.PORT || 5050,
     DB_URL: process.env.DB_URL,
@@ -14,4 +13,4 @@ export default {
     CLIENT_URL: process.env.CLIENT_URL || "http://localhost:5173",
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
-}
+};

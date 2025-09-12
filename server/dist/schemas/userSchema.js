@@ -1,5 +1,4 @@
-import { Schema } from "mongoose"
-
+import { Schema } from "mongoose";
 const userSchema = new Schema({
     email: { type: String, unique: true, required: true },
     fullName: { type: String, required: true },
@@ -8,8 +7,7 @@ const userSchema = new Schema({
     profileImage: {
         url: {
             type: String,
-            default:
-                'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
+            default: 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
         },
         public_id: {
             type: String,
@@ -18,8 +16,7 @@ const userSchema = new Schema({
     backgroundImage: {
         url: {
             type: String,
-            default:
-                'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
+            default: 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
         },
         public_id: {
             type: String,
@@ -55,21 +52,20 @@ const userSchema = new Schema({
         skills: [String],
     },
     cvFiles: [{
-        url: {
-            type: String,
-            default: null,
-        },
-        public_id: {
-            type: String,
-        }
-    },],
+            url: {
+                type: String,
+                default: null,
+            },
+            public_id: {
+                type: String,
+            }
+        },],
     experience: [
         { company: String, role: String, from: Date, to: Date, desc: String }
     ],
     education: [
         { school: String, degree: String, from: Date, to: Date }
     ],
-    profileViews: [{ type: Schema.Types.ObjectId, default: [], ref: "User" }],
-}, { timestamps: true })
-
-export default  userSchema
+    profileViews: { type: Schema.Types.ObjectId, default: 0, ref: "User" },
+}, { timestamps: true });
+export default userSchema;
