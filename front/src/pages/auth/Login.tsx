@@ -1,5 +1,5 @@
 import { useState } from "react";
-import CTApanel from "./components/CTApanel";
+import CTApanel from "./components/CTAPanel";
 import LoginForm from "./components/LoginForm";
 import RegisterForm from "./components/RegisterForm";
 
