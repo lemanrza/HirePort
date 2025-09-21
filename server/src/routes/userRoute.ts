@@ -1,10 +1,13 @@
 import express from "express";
-import { registerUser, loginUser, verifyUserEmail } from "../controllers/userController.js";
+import { registerUser, loginUser, verifyUserEmail, registerCompanyController } from "../controllers/userController.js";
 import userValidate from "../middleware/userValidate.js";
+import { approveCompany } from "../controllers/adminController.js";
 
 const userRouter = express.Router();
 
-userRouter.post("/register", userValidate, registerUser);
+userRouter.post("/registerUser", userValidate, registerUser);
+userRouter.post("/registerCompany", registerCompanyController);
+userRouter.put("/approveCompany/:companyId", approveCompany);
 userRouter.post("/login", loginUser);
 userRouter.get("/verify-email", verifyUserEmail);
 

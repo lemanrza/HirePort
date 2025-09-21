@@ -24,6 +24,7 @@ const companySchema = new Schema({
         linkedin: { type: String, default: null },
         instagram: { type: String, default: null },
     },
+    isApproved: { type: Boolean, default: false },
 }, { timestamps: true })
 
 export default companySchema

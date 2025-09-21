@@ -1,4 +1,5 @@
 import userModel from "../models/userModel.js";
+import companyModel from "../models/companyModel.js";
 import bcrypt from "bcrypt";
 import { generateAccessToken, generateRefreshToken, verifyAccessToken } from "../utils/jwt.js";
 import { sendUnlockAccountEmail } from "../utils/sendMail.js";
@@ -18,7 +19,10 @@ export const register = async (payload: any) => {
                 message: "Email already exists",
             };
         }
-
+        const duplicateCompany = await companyModel.findOne({ email });
+        if (duplicateCompany) {
+            return { success: false, message: "Email already exists in companies" };
+        }
         return {
             success: true,
             data: await userModel.create(payload),
@@ -32,28 +36,61 @@ export const register = async (payload: any) => {
     }
 };
 
+export const registerCompany = async (payload: any) => {
+    try {
+        const { email } = payload;
+
+        const duplicateCompany = await companyModel.findOne({ email });
+        if (duplicateCompany) {
+            return {
+                success: false,
+                message: "Company email already exists",
+            };
+        }
+        const duplicateUser = await userModel.findOne({ email });
+        if (duplicateUser) {
+            return { success: false, message: "Email already exists in users" };
+        }
+        return {
+            success: true,
+            data: await companyModel.create({
+                ...payload,
+                status: "pending",
+                isApproved: false,
+                defaultPassword: null,
+            }),
+        };
+    } catch (error: unknown) {
+        let message = "Internal server error";
+        if (error instanceof Error) {
+            message = error.message;
+        }
+        return { success: false, message };
+    }
+};
+
 export const verifyEmail = async (token: string) => {
-  const decoded = verifyAccessToken(token);
+    const decoded = verifyAccessToken(token);
 
-  if (!decoded || typeof decoded === "string") {
-    return { success: false, message: "Invalid or expired token" };
-  }
+    if (!decoded || typeof decoded === "string") {
+        return { success: false, message: "Invalid or expired token" };
+    }
 
-  const { id } = decoded as JwtPayload & { id: string };
+    const { id } = decoded as JwtPayload & { id: string };
 
-  const user = await userModel.findById(id);
-  if (!user) {
-    return { success: false, message: "User not found" };
-  }
+    const user = await userModel.findById(id);
+    if (!user) {
+        return { success: false, message: "User not found" };
+    }
 
-  if (user.isVerified) {
-    return { success: false, message: "Email already verified" };
-  }
+    if (user.isVerified) {
+        return { success: false, message: "Email already verified" };
+    }
 
-  user.isVerified = true;
-  await user.save();
+    user.isVerified = true;
+    await user.save();
 
-  return { success: true, message: "Email has been verified successfully!" };
+    return { success: true, message: "Email has been verified successfully!" };
 };
 
 export const login = async (email: string, password: string) => {

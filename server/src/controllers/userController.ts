@@ -1,4 +1,4 @@
-import { login, register, verifyEmail } from "../services/userService.js";
+import { login, register, registerCompany, verifyEmail } from "../services/userService.js";
 import { generateAccessToken } from "../utils/jwt.js";
 import { sendVerificationEmail } from "../utils/sendMail.js";
 import config from "../config/config.js";
@@ -48,6 +48,44 @@ export const registerUser = async (
         });
     } catch (error) {
         console.log(error);
+    }
+};
+
+export const registerCompanyController = async (
+    req: Request,
+    res: Response
+) => {
+    try {
+        const { email, name } = req.body;
+
+        if (!email || !name) {
+            return res.status(400).json({
+                success: false,
+                message: "All fields are required",
+            });
+        }
+
+        const response = await registerCompany(req.body);
+
+        if (!response.success) {
+            return res.status(400).json({
+                success: false,
+                message: response.message,
+            });
+        }
+
+        res.status(201).json({
+            success: true,
+            message:
+                "Company registered successfully. Waiting for Admin approval.",
+            data: response.data,
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
     }
 };
 

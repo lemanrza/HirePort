@@ -232,12 +232,69 @@ export const sendForgotPasswordEmail = async (
   }
 };
 
+export const sendDefaultPasswordEmail = async (
+  email: string,
+  companyName: string,
+  defaultPassword: string
+) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      port: 587,
+      secure: false,
+      auth: {
+        user: config.GMAIL_USER,
+        pass: config.GMAIL_PASS,
+      },
+    });
 
+    const htmlContent = `
+<div style="font-family: Arial, sans-serif; background-color: #F0FDF4; padding:40px;">
+  <div style="max-width:600px;margin:auto;background-color:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+    
+    <!-- Header -->
+    <div style="background-color:#059669;padding:20px;color:#ffffff;text-align:center;">
+      <h2 style="margin:0;font-size:24px;">HirePort</h2>
+    </div>
 
+    <!-- Body -->
+    <div style="padding:30px;color:#111827;">
+      <p style="font-size:16px;">Hi <b>${companyName}</b>,</p>
+      <p style="font-size:16px;line-height:1.5;">
+        Your company account has been <b>approved</b> ✅. You can now log in using the following default password:
+      </p>
 
+      <div style="text-align:center;margin:30px 0;">
+        <p style="font-size:20px; font-weight:bold; color:#059669; background:#ECFDF5; display:inline-block; padding:10px 20px; border-radius:6px; border:1px solid #10B981;">
+          ${defaultPassword}
+        </p>
+      </div>
 
+      <p style="font-size:14px;color:#374151;">
+        ⚠️ For security reasons, please change your password immediately after your first login.
+      </p>
+    </div>
 
+    <!-- Footer -->
+    <div style="background-color:#ECFDF5;padding:20px;text-align:center;font-size:12px;color:#6B7280;">
+      &copy; ${new Date().getFullYear()} HirePort. Empowering companies and candidates 🌟
+    </div>
+  </div>
+</div>
+`;
 
+    const mailOptions = {
+      from: `"HirePort Admin" <${config.GMAIL_USER}>`,
+      to: email,
+      subject: "Your Company Account Has Been Approved",
+      html: htmlContent,
+    };
 
-
-
+    const result = await transporter.sendMail(mailOptions);
+    console.log("Default password email sent:", result.messageId);
+    return result;
+  } catch (error) {
+    console.error("Error sending default password email:", error);
+    throw error;
+  }
+};
