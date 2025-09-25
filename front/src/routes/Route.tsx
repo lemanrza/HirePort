@@ -5,7 +5,6 @@ import CompanyLayout from "../layouts/CompanyLayout";
 import AdminLayout from "../layouts/AdminLayout";
 
 import Login from "../pages/auth/Login";
-import Register from "../pages/auth/Register";
 
 
 // import ProtectedRoute from "./ProtectedRoute";
@@ -32,6 +31,7 @@ import Reports from "../pages/admin/Reports";
 import AdminDashboard from "../pages/admin/Dashboard";
 import AdminJobs from "../pages/admin/Jobs";
 import AdminSettings from "../pages/admin/Settings";
+import Enter_OTP from "../pages/company/Enter_OTP";
 
 const routes = [
   {
@@ -39,8 +39,8 @@ const routes = [
     element: <MainLayout />,
     children: [
       { index: true, element: <Navigate to="/auth/login" /> },
-      { path: "auth/login", element: <Login /> },
-      { path: "auth/register", element: <Register /> },
+      { path: "auth/signin", element: <Login /> },
+      {path: "auth/verify-otp", element: <Enter_OTP />},
     ],
   },
 
