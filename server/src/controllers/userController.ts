@@ -4,6 +4,8 @@ import { sendVerificationEmail } from "../utils/sendMail.js";
 import config from "../config/config.js";
 import bcrypt from "bcrypt"
 import { Request, Response } from "express";
+import { sendVerificationSms } from "../utils/sendSMS.js";
+import companyModel from "../models/companyModel.js";
 type HttpError = Error & { statusCode?: number };
 
 export const registerUser = async (
@@ -56,15 +58,16 @@ export const registerCompanyController = async (
     res: Response
 ) => {
     try {
-        const { email, name } = req.body;
+        const { email, name, hrNumber, hrName } = req.body;
 
-        if (!email || !name) {
+        if (!email || !name || !hrNumber || !hrName) {
             return res.status(400).json({
                 success: false,
                 message: "All fields are required",
             });
         }
 
+        // 1. şirkəti yarat
         const response = await registerCompany(req.body);
 
         if (!response.success) {
@@ -74,10 +77,23 @@ export const registerCompanyController = async (
             });
         }
 
+        // 2. OTP kod yarat (məsələn random 6 rəqəm)
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // 3. Twilio ilə SMS göndər
+        await sendVerificationSms(hrNumber, otp);
+
+        // 4. OTP-ni DB-də saxla (company modelə əlavə edə bilərsən: `otpCode`, `otpExpires`)
+        if (response.data) {
+            response.data.otpCode = otp;
+            response.data.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 dəq
+            await response.data.save();
+        }
+
         res.status(201).json({
             success: true,
             message:
-                "Company registered successfully. Waiting for Admin approval.",
+                "Company registered successfully. OTP sent to HR phone number. Waiting for Admin approval.",
             data: response.data,
         });
     } catch (error) {
@@ -86,6 +102,35 @@ export const registerCompanyController = async (
             success: false,
             message: "Internal server error",
         });
+    }
+};
+
+export const verifyCompanyOtp = async (req: Request, res: Response) => {
+    try {
+        const { companyId, otp } = req.body;
+
+        const company = await companyModel.findById(companyId);
+        if (!company) {
+            return res.status(404).json({ success: false, message: "Company not found" });
+        }
+
+        if (!company.otpCode || !company.otpExpires || company.otpExpires < new Date()) {
+            return res.status(400).json({ success: false, message: "OTP expired" });
+        }
+
+        if (company.otpCode !== otp) {
+            return res.status(400).json({ success: false, message: "Invalid OTP" });
+        }
+
+        company.isPhoneVerified = true;
+        company.otpCode = null; // ✅ artıq null ola bilər
+        company.otpExpires = null;
+        await company.save();
+
+        res.json({ success: true, message: "Phone number verified successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
 

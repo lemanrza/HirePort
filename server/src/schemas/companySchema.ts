@@ -4,6 +4,8 @@ const companySchema = new Schema({
     name: { type: String, required: true },
     email: { type: String, unique: true, required: true },
     password: { type: String },
+    hrNumber: { type: String, default: null, required: true },
+    hrName: { type: String, default: null, required: true },
     about: { type: String, default: null },
     website: { type: String, default: null },
     locations: [String],
@@ -25,6 +27,9 @@ const companySchema = new Schema({
         instagram: { type: String, default: null },
     },
     isApproved: { type: Boolean, default: false },
+    isPhoneVerified: { type: Boolean, default: false },
+    otpCode: { type: String || null , default: undefined },
+    otpExpires: { type: Date || null, default: undefined },
 }, { timestamps: true })
 
 export default companySchema

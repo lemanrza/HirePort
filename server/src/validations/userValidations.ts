@@ -1,6 +1,5 @@
 import Joi from "joi";
 
-// 🔹 Register / Create User Validation
 export const registerUserValidation = Joi.object({
   email: Joi.string().email().required().messages({
     "string.email": "Invalid email address",
@@ -10,17 +9,20 @@ export const registerUserValidation = Joi.object({
     "string.min": "Full name must be at least 2 characters",
     "any.required": "Full name is required",
   }),
-  username: Joi.string().alphanum().min(3).max(30).required().messages({
-    "string.alphanum": "Username must only contain letters and numbers",
-    "string.min": "Username must be at least 3 characters",
-    "any.required": "Username is required",
-  }),
+  username: Joi.string().pattern(/^[a-zA-Z0-9_-]+$/).min(3).max(30)
+    .required().messages({
+      "string.pattern.base": "Username can only contain letters, numbers, underscores, and hyphens",
+      "string.min": "Username must be at least 3 characters",
+      "any.required": "Username is required",
+    }),
+
   password: Joi.string().min(6).required().messages({
     "string.min": "Password must be at least 6 characters",
     "any.required": "Password is required",
   }),
-
-  // optional fields
+  confirmPassword: Joi.any().valid(Joi.ref("password")).required().messages({
+    "any.only": "Passwords do not match",
+  }),
   profileImage: Joi.object({
     url: Joi.string().uri().allow(null, ""),
     public_id: Joi.string().allow(null, ""),
@@ -44,7 +46,6 @@ export const registerUserValidation = Joi.object({
     .allow(null, "")
     .messages({ "string.pattern.base": "Phone number format is invalid" }),
 
-  // auto/default values
   isPremium: Joi.boolean().default(false),
   role: Joi.string().valid("USER", "ADMIN").default("USER"),
   isVerified: Joi.boolean().default(false),

@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import { generateAccessToken, generateRefreshToken, verifyAccessToken } from "../utils/jwt.js";
 import { sendUnlockAccountEmail } from "../utils/sendMail.js";
 import { JwtPayload } from "jsonwebtoken";
+import { sendVerificationSms } from "../utils/sendSMS.js";
 
 const config = require("../config/config.js");
 const MAX_ATTEMPTS = 3;
@@ -38,33 +39,42 @@ export const register = async (payload: any) => {
 
 export const registerCompany = async (payload: any) => {
     try {
-        const { email } = payload;
+        const { email, hrNumber, hrName } = payload;
 
+        // duplicate check
         const duplicateCompany = await companyModel.findOne({ email });
         if (duplicateCompany) {
-            return {
-                success: false,
-                message: "Company email already exists",
-            };
+            return { success: false, message: "Company email already exists" };
         }
         const duplicateUser = await userModel.findOne({ email });
         if (duplicateUser) {
             return { success: false, message: "Email already exists in users" };
         }
+
+        // OTP generate
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // SMS göndər
+        await sendVerificationSms(hrNumber, otp);
+
+        // DB-də saxla
+        const newCompany = await companyModel.create({
+            ...payload,
+            status: "pending",
+            isApproved: false,
+            defaultPassword: null,
+            otpCode: otp,
+            otpExpires: new Date(Date.now() + 10 * 60 * 1000), // 10 dəq
+            isPhoneVerified: false,
+        });
+
         return {
             success: true,
-            data: await companyModel.create({
-                ...payload,
-                status: "pending",
-                isApproved: false,
-                defaultPassword: null,
-            }),
+            data: newCompany,
         };
     } catch (error: unknown) {
         let message = "Internal server error";
-        if (error instanceof Error) {
-            message = error.message;
-        }
+        if (error instanceof Error) message = error.message;
         return { success: false, message };
     }
 };
