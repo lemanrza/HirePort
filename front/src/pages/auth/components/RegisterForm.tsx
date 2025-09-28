@@ -1,11 +1,11 @@
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import EyeIcon from "./EyeIcon";
-import controller from "../../../services/commonRequest"; // API çağırışı
+import controller from "../../../services/commonRequest";
 import { userRegisterSchema } from "../../../validations/userValidation";
 import { companyRegisterSchema } from "../../../validations/companyValidation";
 import { enqueueSnackbar } from "notistack";
 import PhoneInput from "react-phone-input-2";
-
+import endpoints from "@/services/api";
 
 const RegisterForm = ({
     active,
@@ -16,16 +16,16 @@ const RegisterForm = ({
     showRegisterUserConfirm,
     setShowRegisterUserConfirm,
 }: any) => {
-    const initialUserValues = {
+    // 👉 Hər iki tab üçün eyni initialValues
+    const initialValues = {
+        // User fields
         fullName: "",
         username: "",
         email: "",
         password: "",
         confirmPassword: "",
-    };
 
-    const initialCompanyValues = {
-        email: "",
+        // Company fields
         name: "",
         hrName: "",
         hrNumber: "",
@@ -34,32 +34,30 @@ const RegisterForm = ({
     const handleSubmit = async (values: any, { setSubmitting, resetForm }: any) => {
         try {
             const endpoint =
-                registerTab === "user" ? "/auth/registerUser" : "/auth/registerCompany";
+                registerTab === "user"
+                    ? `${endpoints.users}/registerUser`
+                    : `${endpoints.company}/registerCompany`;
 
-            const res = await controller.post(endpoint, values);
+            await controller.post(endpoint, values);
 
             if (registerTab === "user") {
                 enqueueSnackbar("Registered successfully. Please verify your email.", {
                     variant: "success",
                 });
             } else {
-                enqueueSnackbar("Company registered. OTP sent to HR phone number.", {
+                enqueueSnackbar("Company registered. Wait for admin approval.", {
                     variant: "info",
                 });
-
-                // yönləndir OTP səhifəsinə
-                window.location.href = `/auth/verify-otp?companyId=${res.data._id}`;
             }
 
             resetForm();
         } catch (error) {
             console.error("Register error:", error);
+            enqueueSnackbar("Registration failed", { variant: "error" });
         } finally {
             setSubmitting(false);
         }
     };
-
-
 
     return (
         <div
@@ -75,6 +73,7 @@ const RegisterForm = ({
             {/* Tabs */}
             <div className="flex mb-6 space-x-4">
                 <button
+                    type="button"
                     onClick={() => setRegisterTab("user")}
                     className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${registerTab === "user"
                         ? "bg-green-900 text-white scale-105 shadow-md"
@@ -84,6 +83,7 @@ const RegisterForm = ({
                     User
                 </button>
                 <button
+                    type="button"
                     onClick={() => setRegisterTab("company")}
                     className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${registerTab === "company"
                         ? "bg-green-900 text-white scale-105 shadow-md"
@@ -94,16 +94,12 @@ const RegisterForm = ({
                 </button>
             </div>
 
-            {/* FORM */}
             <Formik
-                initialValues={
-                    registerTab === "user" ? initialUserValues : initialCompanyValues
-                }
+                initialValues={initialValues}
                 validationSchema={
                     registerTab === "user" ? userRegisterSchema : companyRegisterSchema
                 }
                 onSubmit={handleSubmit}
-                enableReinitialize
             >
                 {({ isSubmitting, isValid, setFieldValue }) => (
                     <Form className="w-full max-w-sm space-y-5">
@@ -161,9 +157,7 @@ const RegisterForm = ({
                                     />
                                     <button
                                         type="button"
-                                        onClick={() =>
-                                            setShowRegisterUserPassword((s: any) => !s)
-                                        }
+                                        onClick={() => setShowRegisterUserPassword((s: any) => !s)}
                                         className="absolute right-3 top-1/2 -translate-y-1/2"
                                     >
                                         <EyeIcon open={showRegisterUserPassword} />
@@ -184,9 +178,7 @@ const RegisterForm = ({
                                     />
                                     <button
                                         type="button"
-                                        onClick={() =>
-                                            setShowRegisterUserConfirm((s: any) => !s)
-                                        }
+                                        onClick={() => setShowRegisterUserConfirm((s: any) => !s)}
                                         className="absolute right-3 top-1/2 -translate-y-1/2"
                                     >
                                         <EyeIcon open={showRegisterUserConfirm} />
@@ -243,46 +235,7 @@ const RegisterForm = ({
                                 </div>
 
                                 <div>
-                                    <PhoneInput
-                                        country={"az"}
-                                        inputProps={{
-                                            name: "hrNumber",
-                                            required: true,
-                                            autoComplete: "tel",
-                                        }}
-                                        onChange={(value) => setFieldValue("hrNumber", "+" + value)}
-                                        inputStyle={{
-                                            width: "100%",
-                                            padding: "12px 16px 12px 60px",
-                                            backgroundColor: "#f0fdf4",
-                                            border: "1px solid #d1fae5",
-                                            borderRadius: "9999px",
-                                            fontSize: "16px",
-                                            fontFamily: "'Inter', sans-serif",
-                                            color: "#1a202c",
-                                            transition: "border-color 0.2s ease, box-shadow 0.2s ease",
-                                            outline: "none",
-                                        }}
-                                        containerStyle={{
-                                            position: "relative",
-                                            marginBottom: "16px",
-                                        }}
-                                        buttonStyle={{
-                                            borderRadius: "9999px 0 0 9999px",
-                                            border: "1px solid #d1fae5",
-                                            borderRight: "none",
-                                            backgroundColor: "#f0fdf4",
-                                            padding: "0 8px",
-                                        }}
-                                        dropdownStyle={{
-                                            borderRadius: "8px",
-                                            border: "1px solid #d1fae5",
-                                            backgroundColor: "#f0fdf4",
-                                            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                                            maxHeight: "200px",
-                                            overflowY: "auto",
-                                        }}
-                                    />
+                                    <PhoneInput country={"az"} inputProps={{ name: "hrNumber", required: true, autoComplete: "tel", }} onChange={(value) => setFieldValue("hrNumber", "+" + value)} inputStyle={{ width: "100%", padding: "12px 16px 12px 60px", backgroundColor: "#f0fdf4", border: "1px solid #d1fae5", borderRadius: "9999px", fontSize: "16px", fontFamily: "'Inter', sans-serif", color: "#1a202c", transition: "border-color 0.2s ease, box-shadow 0.2s ease", outline: "none", }} containerStyle={{ position: "relative", marginBottom: "16px", }} buttonStyle={{ borderRadius: "9999px 0 0 9999px", border: "1px solid #d1fae5", borderRight: "none", backgroundColor: "#f0fdf4", padding: "0 8px", }} dropdownStyle={{ borderRadius: "8px", border: "1px solid #d1fae5", backgroundColor: "#f0fdf4", boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)", maxHeight: "200px", overflowY: "auto", }} />
                                     <ErrorMessage
                                         name="hrNumber"
                                         component="div"

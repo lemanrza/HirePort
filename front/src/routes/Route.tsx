@@ -1,13 +1,17 @@
-import { Navigate } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
 import UserLayout from "../layouts/UserLayout";
 import CompanyLayout from "../layouts/CompanyLayout";
 import AdminLayout from "../layouts/AdminLayout";
 
 import Login from "../pages/auth/Login";
+import Enter_OTP from "../pages/company/Enter_OTP";
+import EmailVerify from "@/pages/auth/EmailVerify";
+import ForgotPassword from "@/pages/auth/ForgotPassword";
+import ResetPassword from "@/pages/auth/ResetPassword";
+import AuthCallback from "@/pages/auth/AuthCallback";
 
 
-// import ProtectedRoute from "./ProtectedRoute";
+// User
 import Jobs from "../pages/user/Jobs";
 import JobDetails from "../pages/user/JobDetails";
 import Applications from "../pages/user/Applications";
@@ -16,6 +20,8 @@ import UserSettings from "../pages/user/Settings";
 import UserInterviews from "../pages/user/Interviews";
 import UserProfile from "../pages/user/Profile";
 import UserDashboard from "../pages/user/Dashboard";
+
+// Company
 import JobPosts from "../pages/company/JobPosts";
 import CreateJob from "../pages/company/CreateJob";
 import Applicants from "../pages/company/Applicants";
@@ -25,37 +31,46 @@ import CompanyDashboard from "../pages/company/Dashboard";
 import CompanyInterviews from "../pages/company/Interviews";
 import CompanySettings from "../pages/company/Settings";
 import CompanyProfile from "../pages/company/Profile";
+
+// Admin
 import Users from "../pages/admin/Users";
 import Companies from "../pages/admin/Companies";
 import Reports from "../pages/admin/Reports";
 import AdminDashboard from "../pages/admin/Dashboard";
 import AdminJobs from "../pages/admin/Jobs";
 import AdminSettings from "../pages/admin/Settings";
-import Enter_OTP from "../pages/company/Enter_OTP";
+
+import ProtectedRoute from "./ProtectedRoute";
+import Home from "@/pages/common/Home";
 
 const routes = [
   {
     path: "/",
     element: <MainLayout />,
     children: [
-      { index: true, element: <Navigate to="/auth/login" /> },
+      { index: true, element: <Home /> },
       { path: "auth/signin", element: <Login /> },
-      {path: "auth/verify-otp", element: <Enter_OTP />},
+      { path: "auth/verify-otp", element: <Enter_OTP /> },
+      { path: "auth/email-verified", element: <EmailVerify /> },
+      { path: "forgot-password", element: <ForgotPassword /> },
+      { path: "reset-password/:token", element: <ResetPassword /> },
+      { path: "success/:token", element: <AuthCallback /> },
+
+      { path: "jobs", element: <Jobs /> },
+      { path: "jobs/:id", element: <JobDetails /> },
     ],
   },
 
   {
     path: "/user",
     element: (
-      // <ProtectedRoute allowedRoles={["USER"]}>
+      <ProtectedRoute allowedRoles={["USER", "ADMIN"]}>
         <UserLayout />
-      // {/* </ProtectedRoute> */}
+      </ProtectedRoute>
     ),
     children: [
       { index: true, element: <UserDashboard /> },
       { path: "profile", element: <UserProfile /> },
-      { path: "jobs", element: <Jobs /> },
-      { path: "jobs/:id", element: <JobDetails /> },
       { path: "applications", element: <Applications /> },
       { path: "tests/:id", element: <Tests /> },
       { path: "interviews", element: <UserInterviews /> },
@@ -66,9 +81,9 @@ const routes = [
   {
     path: "/company",
     element: (
-      // <ProtectedRoute allowedRoles={["COMPANY"]}>
+      <ProtectedRoute allowedRoles={["COMPANY"]}>
         <CompanyLayout />
-      // </ProtectedRoute>
+      </ProtectedRoute>
     ),
     children: [
       { index: true, element: <CompanyDashboard /> },
@@ -86,9 +101,9 @@ const routes = [
   {
     path: "/admin",
     element: (
-      // <ProtectedRoute allowedRoles={["ADMIN"]}>
+      <ProtectedRoute allowedRoles={["ADMIN"]}>
         <AdminLayout />
-      // </ProtectedRoute>
+      </ProtectedRoute>
     ),
     children: [
       { index: true, element: <AdminDashboard /> },

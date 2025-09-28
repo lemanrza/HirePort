@@ -1,5 +1,4 @@
 import instance from "./instance";
-import { enqueueSnackbar } from "notistack";
 
 // Fetch all
 async function getAll(endpoint: string) {
@@ -53,20 +52,7 @@ async function post(endpoint: string, data: any, headers?: object) {
     const response = await instance.post(endpoint, data, headers);
     return response.data;
   } catch (error: any) {
-    console.error("Error creating user:", error);
-    if (error.response) {
-      console.error("Response data:", error.response.data);
-      console.error("Response status:", error.response.status);
-    }
-    enqueueSnackbar(error.response?.data?.message || "An error occurred", {
-      autoHideDuration: 2000,
-      anchorOrigin: {
-        vertical: "bottom",
-        horizontal: "right",
-      },
-      variant: "error",
-    });
-    throw error;
+    throw error.response?.data || { message: "An error occurred" };
   }
 }
 

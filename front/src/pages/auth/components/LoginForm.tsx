@@ -4,10 +4,15 @@ import { enqueueSnackbar } from "notistack";
 import { userLoginSchema } from "../../../validations/userValidation";
 import { companyLoginSchema } from "../../../validations/companyValidation";
 import controller from "../../../services/commonRequest";
+import endpoints from "@/services/api";
 
 export const loginUser = async (data: { email: string; password: string }) => {
-    return controller.post("/auth/login", data);
+    return controller.post(`${endpoints.users}/login`, data);
 };
+
+export const loginCompany = async (data: { email: string, password: string }) => {
+    return controller.post(`${endpoints.company}/login`, data);
+}
 
 const LoginForm = ({
     active,
@@ -23,21 +28,35 @@ const LoginForm = ({
 
     const handleSubmit = async (values: any, { setSubmitting, resetForm }: any) => {
         try {
-            const res = await loginUser(values);
+            let res;
+            if (loginTab === "user") {
+                res = await loginUser(values);
+            } else {
+                res = await loginCompany(values);
+            }
+
             enqueueSnackbar("Login successful!", { variant: "success" });
             console.log("Login response:", res);
 
-            // TODO: token save
-            localStorage.setItem("token", res.token);
+            localStorage.setItem("token", res.data.token);
+            console.log(res)
+            if (loginTab === "company" && res.data.company.forcePasswordReset) {
+                window.location.href = "/company/profile?setPassword=true";
+            } else {
+                // window.location.href = loginTab === "user" ? "/user" : "/company";
+                console.log("errror")
+            }
 
             resetForm();
         } catch (error: any) {
-            console.error("Login error:", error);
-            enqueueSnackbar(error.response?.data?.message || "Login failed", { variant: "error" });
+            enqueueSnackbar(error?.response?.data?.message || "Login failed", {
+                variant: "error",
+            });
         } finally {
             setSubmitting(false);
         }
     };
+
 
     return (
         <div
