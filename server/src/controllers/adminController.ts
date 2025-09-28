@@ -3,7 +3,7 @@ import { approveCompanyService } from "../services/adminServices";
 
 export const approveCompany = async (req: Request, res: Response) => {
     try {
-        const { companyId } = req.params;
+        const { companyId } = req.body;
         const response = await approveCompanyService(companyId);
 
         if (!response.success) {

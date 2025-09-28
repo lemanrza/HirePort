@@ -1,3 +1,4 @@
+import { string } from "joi"
 import { Schema } from "mongoose"
 
 const companySchema = new Schema({
@@ -21,14 +22,14 @@ const companySchema = new Schema({
 
     status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
     forcePasswordReset: { type: Boolean, default: false },
-
+    role: { type: String, default: "COMPANY" },
     socials: {
         linkedin: { type: String, default: null },
         instagram: { type: String, default: null },
     },
     isApproved: { type: Boolean, default: false },
     isPhoneVerified: { type: Boolean, default: false },
-    otpCode: { type: String || null , default: undefined },
+    otpCode: { type: String || null, default: undefined },
     otpExpires: { type: Date || null, default: undefined },
 }, { timestamps: true })
 

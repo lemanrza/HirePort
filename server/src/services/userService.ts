@@ -2,9 +2,8 @@ import userModel from "../models/userModel.js";
 import companyModel from "../models/companyModel.js";
 import bcrypt from "bcrypt";
 import { generateAccessToken, generateRefreshToken, verifyAccessToken } from "../utils/jwt.js";
-import { sendUnlockAccountEmail } from "../utils/sendMail.js";
+import { sendUnlockAccountEmail, sendVerificationEmail } from "../utils/sendMail.js";
 import { JwtPayload } from "jsonwebtoken";
-import { sendVerificationSms } from "../utils/sendSMS.js";
 
 const config = require("../config/config.js");
 const MAX_ATTEMPTS = 3;
@@ -37,48 +36,6 @@ export const register = async (payload: any) => {
     }
 };
 
-export const registerCompany = async (payload: any) => {
-    try {
-        const { email, hrNumber, hrName } = payload;
-
-        // duplicate check
-        const duplicateCompany = await companyModel.findOne({ email });
-        if (duplicateCompany) {
-            return { success: false, message: "Company email already exists" };
-        }
-        const duplicateUser = await userModel.findOne({ email });
-        if (duplicateUser) {
-            return { success: false, message: "Email already exists in users" };
-        }
-
-        // OTP generate
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-        // SMS göndər
-        await sendVerificationSms(hrNumber, otp);
-
-        // DB-də saxla
-        const newCompany = await companyModel.create({
-            ...payload,
-            status: "pending",
-            isApproved: false,
-            defaultPassword: null,
-            otpCode: otp,
-            otpExpires: new Date(Date.now() + 10 * 60 * 1000), // 10 dəq
-            isPhoneVerified: false,
-        });
-
-        return {
-            success: true,
-            data: newCompany,
-        };
-    } catch (error: unknown) {
-        let message = "Internal server error";
-        if (error instanceof Error) message = error.message;
-        return { success: false, message };
-    }
-};
-
 export const verifyEmail = async (token: string) => {
     const decoded = verifyAccessToken(token);
 
@@ -102,6 +59,34 @@ export const verifyEmail = async (token: string) => {
 
     return { success: true, message: "Email has been verified successfully!" };
 };
+
+export const resendVerificationEmail = async (token: string) => {
+    const decoded = verifyAccessToken(token);
+
+    if (!decoded || typeof decoded === "string") {
+        return { success: false, message: "Invalid or expired token" };
+    }
+
+    const { id, email, fullName } = decoded as JwtPayload & { id: string; email: string; fullName: string };
+
+    const user = await userModel.findById(id);
+    if (!user) {
+        return { success: false, message: "User not found" };
+    }
+
+    if (user.isVerified) {
+        return { success: false, message: "Email already verified" };
+    }
+
+    // yeni token generasiya elə
+    const newToken = generateAccessToken({ id: user._id, email: user.email, fullName: user.fullName }, "6h");
+
+    const verificationLink = `${config.SERVER_URL}/auth/verify-email?token=${newToken}`;
+    await sendVerificationEmail(user.email, user.fullName, verificationLink);
+
+    return { success: true, message: "Verification email resent successfully!" };
+};
+
 
 export const login = async (email: string, password: string) => {
 

@@ -19,6 +19,7 @@ export const approveCompanyService = async (companyId: string) => {
     company.isApproved = true;
     company.status = "approved";
     company.password = hashedPassword;
+    company.forcePasswordReset = true;
     await company.save();
 
     await sendDefaultPasswordEmail(company.email, company.name, defaultPassword);

@@ -102,37 +102,6 @@ const generateUnlockAccountHTML = (
         `;
 };
 
-export const sendUnlockAccountEmail = async (
-  recipientEmail: string,
-  name: string,
-  unlockTime: any,
-  unlockAccountLink: string
-) => {
-  try {
-    console.log(`Sending unlock account email to: ${recipientEmail}`);
-
-    const htmlContent = generateUnlockAccountHTML(
-      name,
-      unlockAccountLink,
-      unlockTime
-    );
-
-    const mailOptions = {
-      from: `"TripCast Security" <${config.GMAIL_USER}>`,
-      to: recipientEmail,
-      subject: "Account Locked - Action Required",
-      html: htmlContent,
-    };
-
-    const result = await transporter.sendMail(mailOptions);
-    console.log("Unlock account email sent successfully:", result.messageId);
-    return result;
-  } catch (error) {
-    console.error("Error sending unlock account email:", error);
-    throw error;
-  }
-};
-
 export const sendVerificationEmail = async (
   toEmail: string,
   userFullName: string,
@@ -183,6 +152,63 @@ export const sendVerificationEmail = async (
   }
 };
 
+
+export const sendUnlockAccountEmail = async (
+  recipientEmail: string,
+  name: string,
+  unlockTime: any,
+  unlockAccountLink: string
+) => {
+  try {
+    console.log(`Sending unlock account email to: ${recipientEmail}`);
+
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; background-color: #f9fafb; padding: 40px;">
+        <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          
+          <!-- Header -->
+          <div style="background-color: #2563eb; padding: 20px; color: white; text-align: center;">
+            <h2 style="margin: 0; font-size: 22px;">Account Locked - Action Required</h2>
+          </div>
+          
+          <!-- Body -->
+          <div style="padding: 30px; color: #333;">
+            <p style="font-size: 16px; line-height: 1.6;">Hi <strong>${name}</strong>,</p>
+            <p style="font-size: 16px; line-height: 1.6;">Your account has been temporarily locked due to multiple failed login attempts.</p>
+            <p style="font-size: 16px; line-height: 1.6;">You can unlock your account after <strong>${unlockTime}</strong> or click the button below:</p>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${unlockAccountLink}" target="_blank"
+                style="background-color: #10b981; color: #ffffff; padding: 14px 24px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">
+                Unlock My Account
+              </a>
+            </div>
+          </div>
+          
+          <!-- Footer -->
+          <div style="background-color: #f3f4f6; padding: 15px; text-align: center; font-size: 12px; color: #666;">
+            &copy; ${new Date().getFullYear()} HirePort. Secure hiring made simple.
+          </div>
+        </div>
+      </div>
+    `;
+
+    const mailOptions = {
+      from: `"HirePort Security" <${config.GMAIL_USER}>`,
+      to: recipientEmail,
+      subject: "Your HirePort Account is Locked",
+      html: htmlContent,
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log("Unlock account email sent successfully:", result.messageId);
+    return result;
+  } catch (error) {
+    console.error("Error sending unlock account email:", error);
+    throw error;
+  }
+};
+
 export const sendForgotPasswordEmail = async (
   toEmail: string,
   userFullName: string,
@@ -190,39 +216,39 @@ export const sendForgotPasswordEmail = async (
 ) => {
   try {
     await transporter.sendMail({
-      from: `"TripCast" <${config.GMAIL_USER}>`,
+      from: `"HirePort" <${config.GMAIL_USER}>`,
       to: toEmail,
-      subject: "Reset Your Password",
+      subject: "Reset Your HirePort Password",
       html: `
-        <div style="font-family: Arial, sans-serif; background-color: #f8fafb; padding: 40px;">
+        <div style="font-family: Arial, sans-serif; background-color: #f9fafb; padding: 40px;">
           <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
             
-            <!-- Header Section -->
-            <div style="background-color: #FF6F61; padding: 20px; color: white; text-align: center; border-top-left-radius: 8px; border-top-right-radius: 8px;">
-              <h2 style="margin: 0; font-size: 24px;">Password Reset Request, ${userFullName}!</h2>
+            <!-- Header -->
+            <div style="background-color: #2563eb; padding: 20px; color: white; text-align: center;">
+              <h2 style="margin: 0; font-size: 22px;">Password Reset Request</h2>
             </div>
             
-            <!-- Body Section -->
+            <!-- Body -->
             <div style="padding: 30px; color: #333;">
-              <p style="font-size: 16px; line-height: 1.6;">We received a request to reset your password. No worries, just click the button below to create a new one.</p>
-              <p style="font-size: 16px; line-height: 1.6;">To reset your password, click the button below:</p>
+              <p style="font-size: 16px; line-height: 1.6;">Hello <strong>${userFullName}</strong>,</p>
+              <p style="font-size: 16px; line-height: 1.6;">We received a request to reset your password for your HirePort account.</p>
+              <p style="font-size: 16px; line-height: 1.6;">Click the button below to set a new password:</p>
 
-              <!-- Button Section -->
               <div style="text-align: center; margin: 30px 0;">
                 <a href="${resetLink}" target="_blank"
-                   style="background-color: #FF6F61; color: #ffffff; padding: 14px 24px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">
-                   Reset Password
+                  style="background-color: #10b981; color: #ffffff; padding: 14px 24px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">
+                  Reset Password
                 </a>
               </div>
 
               <p style="font-size: 14px; color: #666; text-align: center; line-height: 1.6;">
-                If you didn’t request a password reset, please ignore this email.
+                If you didn’t request this, please ignore this email.
               </p>
             </div>
             
-            <!-- Footer Section -->
-            <div style="background-color: #f8fafb; padding: 20px; text-align: center; font-size: 12px; color: #999; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
-              &copy; ${new Date().getFullYear()} TripCast. All rights reserved.
+            <!-- Footer -->
+            <div style="background-color: #f3f4f6; padding: 15px; text-align: center; font-size: 12px; color: #666;">
+              &copy; ${new Date().getFullYear()} HirePort. Your trusted hiring platform.
             </div>
           </div>
         </div>`
@@ -231,6 +257,7 @@ export const sendForgotPasswordEmail = async (
     console.error("Error sending email:", error);
   }
 };
+
 
 export const sendDefaultPasswordEmail = async (
   email: string,
